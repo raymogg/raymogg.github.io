@@ -32,6 +32,36 @@ h1 {
     margin-bottom: 1rem;
 }
 
+footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.footer-content {
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.footer-content a {
+    color: #666;
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    color: #333;
+    text-decoration: underline;
+}
+
+.separator {
+    color: #ccc;
+}
+
 @media (max-width: 600px) {
     body {
         padding: 1.5rem;
@@ -43,5 +73,9 @@ h1 {
     
     .content {
         font-size: 1rem;
+    }
+    
+    .footer-content {
+        font-size: 0.85rem;
     }
 }
