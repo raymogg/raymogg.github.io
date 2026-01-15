@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     line-height: 1.6;
@@ -12,10 +16,13 @@ body {
     padding: 2rem;
     max-width: 800px;
     margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 header {
-    margin-bottom: 3rem;
+    margin-bottom: 1rem;
 }
 
 h1 {
@@ -30,6 +37,19 @@ h1 {
 
 .content p {
     margin-bottom: 1rem;
+}
+
+.content ul {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+.content li {
+    margin-bottom: 0.5rem;
+}
+
+main {
+    flex: 1;
 }
 
 footer {
