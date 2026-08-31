@@ -221,3 +221,26 @@ footer {
         min-width: 0;
     }
 }
+
+/* About portrait */
+.about {
+    display: flow-root; /* contain the floated portrait without clipping */
+}
+
+.portrait {
+    float: right;
+    width: 175px;
+    height: 175px;
+    object-fit: cover;
+    margin: 0.25rem 0 1rem 1.75rem;
+}
+
+@media (max-width: 600px) {
+    .portrait {
+        float: none;
+        display: block;
+        width: 135px;
+        height: 135px;
+        margin: 0 0 1.25rem;
+    }
+}
