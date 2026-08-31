@@ -8,6 +8,65 @@
 </head>
 <body>
     <main>
+        <section class="content">
+            <header>
+                <h1>About</h1>
+            </header>
+            <p>
+                I'm a current Master of Science (Statistics) student at the University of Queensland and an aspiring researcher. My particular interests are in evolutionary algorithms, automatic curricula, recursive learning and open-endedness.
+            </p>
+            <p>
+                Previously I've worked as a quantitative developer designing algorithms and building trading systems for high-frequency trading firms. I've also co-founded and exited a startup to a NYSE listed company.
+            </p>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Research</h1>
+            </header>
+            <ul class="entries">
+                <li>
+                    <a href="https://link.springer.com/chapter/10.1007/978-3-030-89432-0_5" target="_blank" rel="noopener noreferrer">A Framework for Generating Evasion Attacks for Machine Learning Based Network Intrusion Detection Systems</a>
+                    <span class="meta">Published at WISA 2021.</span>
+                </li>
+                <li>
+                    <a href="https://github.com/raymogg/GeneticAlgorithmIDSAttacks/blob/master/Submissions/Mogg_Raymond_s4433293_ENGG4802.pdf" target="_blank" rel="noopener noreferrer">Generating Evasion Attacks Against Intrusion Detection Systems Using a Genetic Algorithm</a>
+                    <span class="meta">UQ Honours Thesis</span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Projects</h1>
+            </header>
+            <ul class="entries">
+                <li>
+                    <a href="https://github.com/raymogg/tailbench" target="_blank" rel="noopener noreferrer">tailbench</a>
+                    <span class="meta">Benchmark environment for measuring p99 latency of a target program in a Rust async runtime. Allows new test levels to be automatically generated with a small parameter set.</span>
+                </li>
+                <li>
+                    <a href="https://github.com/raymogg/autoresearch-meta-harness" target="_blank" rel="noopener noreferrer">autoresearch</a>
+                    <span class="meta">Custom harness for running auto-research style experiments. Used to run experiments with an actor-critic style multi-agent setup.</span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="content">
+            <div id="branching" class="bp" role="img" aria-label="Animated Galton-Watson branching process simulation">
+                <canvas class="bp-canvas"></canvas>
+                <p class="bp-stat" role="status" aria-live="off">generation 0 — 1 individual</p>
+                <label class="bp-control">
+                    <span class="bp-label">&#956;</span>
+                    <input type="range" min="0.1" max="2" step="0.05" value="1.1" aria-label="Mean offspring per individual (mu)">
+                    <span class="bp-mu">1.1</span>
+                </label>
+                <p class="bp-caption">A branching process. Each individual leaves Poisson(&#956;) offspring. Try some different values of &#956;! Population on a log scale.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
         <nav class="links">
             <a href="https://www.linkedin.com/in/raymogg/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
@@ -25,6 +84,7 @@
                 </svg>
             </a>
         </nav>
-    </main>
+    </footer>
+    <script src="branching.js"></script>
 </body>
 </html>
