@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>foragers world — raymogg.com</title>
+    <meta name="description" content="A JAX reinforcement learning environment where an agent holds a population of foragers inside a target band.">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="foragers.css">
+</head>
+<body>
+    <main>
+        <section class="content">
+            <header>
+                <h1>foragers world</h1>
+            </header>
+            <p class="project-meta">
+                A reinforcement learning environment written from scratch in JAX.
+                <a href="https://github.com/raymogg/foragers-world-rl" target="_blank" rel="noopener noreferrer">Source on GitHub</a>.
+            </p>
+            <p>
+                Foragers random-walk on a 32&times;32 grid, paying energy for every
+                step they take. They share a tile's food evenly between everyone
+                standing on it, starve at zero energy, and breed asexually by
+                splitting their energy with the offspring. Food regrows
+                stochastically up to a per-tile cap, which gives the world a
+                carrying capacity &mdash; so the population oscillates rather
+                than growing without bound or dying out.
+            </p>
+            <p>
+                An agent watches that population and gets one lever: a global
+                movement cost. Raise it and foragers burn energy faster and die
+                off; lower it and they survive and breed. The goal is to hold the
+                population inside a target band of 80&ndash;140 for as long as
+                possible, scoring +1 for every step it stays there over a
+                500&ndash;step episode.
+            </p>
+            <p>
+                The whole simulation is pure functional JAX &mdash; fixed-shape
+                arrays with an <code>alive</code> mask instead of a growing list,
+                <code>vmap</code> over the population and over parallel worlds,
+                <code>lax.scan</code> over episode steps. 256 worlds &times; 500
+                steps runs in about a second on a laptop CPU.
+            </p>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Three regimes</h1>
+            </header>
+            <p>
+                Three fixed movement costs, with the third also in a leaner
+                world &mdash; the food regrows more slowly. These are real
+                trajectories exported from the simulation and replayed here;
+                nothing is simulated in the browser. Green is food, dark dots
+                are foragers, and the shaded strip on each chart is the target
+                band.
+            </p>
+
+            <div class="fw-runs">
+                <figure class="fw-panel" data-run="runs/dying.json">
+                    <figcaption>
+                        <strong>Collapse</strong>
+                        <span class="fw-sub">cost <span class="fw-cost">&mdash;</span> &middot; regrowth <span class="fw-regrowth">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">
+                        Movement costs more energy than a tile of food returns.
+                        Everyone starves within a dozen steps, long before the
+                        band is reached. Return <span class="fw-return">&mdash;</span>.
+                    </p>
+                </figure>
+
+                <figure class="fw-panel" data-run="runs/stable.json">
+                    <figcaption>
+                        <strong>Stable</strong>
+                        <span class="fw-sub">cost <span class="fw-cost">&mdash;</span> &middot; regrowth <span class="fw-regrowth">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">
+                        The best fixed action. The population settles around the
+                        band and drifts across a range of roughly 100, grazing
+                        the map down and letting it regrow.
+                        Return <span class="fw-return">&mdash;</span>.
+                    </p>
+                </figure>
+
+                <figure class="fw-panel" data-run="runs/boombust.json">
+                    <figcaption>
+                        <strong>Boom and bust</strong>
+                        <span class="fw-sub">cost <span class="fw-cost">&mdash;</span> &middot; regrowth <span class="fw-regrowth">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">
+                        Cheap movement in a leaner world. The population
+                        overshoots to twice the band, strips the map, crashes,
+                        and repeats &mdash; a range of nearly 200, passing through
+                        the band without ever settling.
+                        Return <span class="fw-return">&mdash;</span>.
+                    </p>
+                </figure>
+            </div>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Baselines</h1>
+            </header>
+            <p>
+                Mean return over 256 parallel worlds, out of a possible 500. Every
+                fixed action was swept to find the ceiling a learned policy has to
+                clear.
+            </p>
+            <table class="fw-table">
+                <thead>
+                    <tr>
+                        <th>policy</th>
+                        <th>move cost</th>
+                        <th>return</th>
+                        <th>extinct</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>best fixed action</td>
+                        <td>1.50</td>
+                        <td>298</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>second best</td>
+                        <td>1.25</td>
+                        <td>247</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>uniform random</td>
+                        <td>&mdash;</td>
+                        <td>38</td>
+                        <td>94%</td>
+                    </tr>
+                    <tr>
+                        <td>too cheap</td>
+                        <td>&le;&nbsp;1.00</td>
+                        <td>1&ndash;8</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>too expensive</td>
+                        <td>&ge;&nbsp;2.00</td>
+                        <td>0</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="fw-caption">
+                Random scores 38 because half the action space is lethal. The
+                best single action scores 298, so a learned policy has to beat
+                that to show it is reacting to what it observes rather than
+                settling on one lever position. Since the population oscillates
+                under <em>every</em> fixed action, there is real headroom between
+                298 and 500 for a policy that adjusts as the population swings.
+            </p>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>The learned agent</h1>
+            </header>
+            <p class="fw-pending">
+                In progress. The environment, the batched rollout and the policy
+                interface are done; PPO is the next piece. This section will hold
+                the training curve and the trained agent's trajectory next to the
+                298 baseline.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <nav class="links">
+            <a href="../../" aria-label="Home">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path d="M12 3 2 12h3v9h6v-6h2v6h6v-9h3L12 3z"/>
+                </svg>
+            </a>
+            <a href="https://github.com/raymogg" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.69-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.02 11.02 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.2.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/>
+                </svg>
+            </a>
+        </nav>
+    </footer>
+    <script src="foragers.js"></script>
+</body>
+</html>

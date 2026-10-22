@@ -1,0 +1,141 @@
+/* foragers world project page. Extends styles.css; defines nothing it already has. */
+
+.project-meta {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.project-meta a {
+    color: #222;
+    text-decoration: underline;
+    text-decoration-color: #ccc;
+    text-underline-offset: 3px;
+}
+
+.project-meta a:hover {
+    text-decoration-color: #222;
+}
+
+.content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #222;
+}
+
+/* Three runs, side by side */
+.fw-runs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.fw-panel {
+    margin: 0;
+    min-width: 0; /* let grid columns shrink instead of overflowing */
+}
+
+.fw-panel figcaption {
+    font-size: 0.9rem;
+    color: #222;
+    margin-bottom: 0.5rem;
+}
+
+.fw-panel figcaption strong {
+    font-weight: 600;
+}
+
+.fw-sub {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    font-variant-numeric: tabular-nums;
+}
+
+.fw-grid {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+}
+
+.fw-chart {
+    display: block;
+    width: 100%;
+    height: 54px;
+    margin-top: 0.4rem;
+}
+
+.fw-stat {
+    font-size: 0.75rem;
+    color: #666;
+    font-variant-numeric: tabular-nums;
+    margin: 0.2rem 0 0.5rem;
+}
+
+.fw-note {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #666;
+    margin: 0;
+}
+
+.fw-return {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Baselines */
+.fw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-top: 1.25rem;
+}
+
+.fw-table th,
+.fw-table td {
+    text-align: left;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid #ededed;
+}
+
+.fw-table th {
+    font-weight: 600;
+    color: #222;
+    font-size: 0.85rem;
+}
+
+.fw-table td {
+    color: #444;
+    font-variant-numeric: tabular-nums;
+}
+
+.fw-table tbody tr:first-child td {
+    color: #222;
+    font-weight: 600;
+}
+
+.fw-caption {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 1.25rem;
+}
+
+.fw-pending {
+    font-size: 0.95rem;
+    color: #666;
+    padding-left: 1rem;
+    border-left: 2px solid #e8e8e8;
+}
+
+@media (max-width: 700px) {
+    .fw-runs {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .fw-grid {
+        max-width: 320px;
+    }
+}
