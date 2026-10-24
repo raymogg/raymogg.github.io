@@ -21,9 +21,16 @@
         return out;
     }
 
+    function cssWidthOf(canvas) {
+        // clientWidth can be 0 if this runs before layout settles, which would
+        // make every cell zero-sized and draw nothing at all.
+        return canvas.clientWidth ||
+            (canvas.parentElement && canvas.parentElement.clientWidth) || 240;
+    }
+
     function fitCanvas(canvas, cssHeight) {
         var ratio = window.devicePixelRatio || 1;
-        var cssWidth = canvas.clientWidth;
+        var cssWidth = cssWidthOf(canvas);
         canvas.width = Math.round(cssWidth * ratio);
         canvas.height = Math.round(cssHeight * ratio);
         var ctx = canvas.getContext("2d");
@@ -33,7 +40,7 @@
 
     function drawGrid(canvas, run, frame) {
         var n = run.grid;
-        var fit = fitCanvas(canvas, canvas.clientWidth);
+        var fit = fitCanvas(canvas, cssWidthOf(canvas));
         var ctx = fit.ctx;
         var px = fit.w / n;
 
@@ -118,6 +125,11 @@
 
     function load(panel) {
         var src = panel.getAttribute("data-run");
+        if (location.protocol === "file:") {
+            panel.querySelector(".fw-stat").textContent =
+                "needs a web server (fetch is blocked on file://)";
+            return Promise.resolve(null);
+        }
         return fetch(src)
             .then(function (r) {
                 if (!r.ok) throw new Error(src + ": " + r.status);
@@ -140,8 +152,8 @@
             })
             .catch(function (err) {
                 panel.querySelector(".fw-stat").textContent =
-                    "could not load run";
-                if (window.console) console.error(err);
+                    "could not load run — " + (err && err.message ? err.message : err);
+                if (window.console) console.error(src, err);
                 return null;
             });
     }

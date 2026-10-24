@@ -22,17 +22,16 @@
     color: #222;
 }
 
-/* Three runs, side by side */
+/* Three runs, stacked in a single column */
 .fw-runs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 2.5rem;
     margin-top: 1.5rem;
 }
 
 .fw-panel {
     margin: 0;
-    min-width: 0; /* let grid columns shrink instead of overflowing */
+    max-width: 420px;
 }
 
 .fw-panel figcaption {
@@ -127,15 +126,4 @@
     color: #666;
     padding-left: 1rem;
     border-left: 2px solid #e8e8e8;
-}
-
-@media (max-width: 700px) {
-    .fw-runs {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .fw-grid {
-        max-width: 320px;
-    }
 }

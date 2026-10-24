@@ -12,35 +12,48 @@
     <main>
         <section class="content">
             <header>
-                <h1>foragers world</h1>
+                <h1>Foragers world</h1>
             </header>
             <p class="project-meta">
                 A reinforcement learning environment written from scratch in JAX.
                 <a href="https://github.com/raymogg/foragers-world-rl" target="_blank" rel="noopener noreferrer">Source on GitHub</a>.
             </p>
             <p>
-                Foragers random-walk on a 32&times;32 grid, paying energy for every
-                step they take. They share a tile's food evenly between everyone
-                standing on it, starve at zero energy, and breed asexually by
-                splitting their energy with the offspring. Food regrows
-                stochastically up to a per-tile cap, which gives the world a
-                carrying capacity &mdash; so the population oscillates rather
-                than growing without bound or dying out.
+                I built foragers world as a way to explore simulated environments in JAX, evolutionary processes and 
+                population control RL. The world is designed to be simple by nature to allow a researcher
+                to reason with changes made by the agent.
             </p>
+
+            <header>
+                <h2>Foragers</h2>
+            </header>
             <p>
-                An agent watches that population and gets one lever: a global
-                movement cost. Raise it and foragers burn energy faster and die
-                off; lower it and they survive and breed. The goal is to hold the
+                Foragers are by nature simple creatures. They breed asexually and randomly walk around their
+                grid environment. They have a measure of energy which is depleted when they take a step and when
+                they breed. Breeding splits their energy between them and their offspring and requires a minimum amount
+                of energy to do. 
+            </p>
+
+            <header>
+                <h2>Agent</h2>
+            </header>
+            <p>
+                An agent watches that population and gets one current lever - a global
+                movement cost. Raising the movement cost causes foragers to burn energy
+                more rapidly and die off. Lowering it allows them to move about and breed more easily. 
+                The goal is to hold the
                 population inside a target band of 80&ndash;140 for as long as
                 possible, scoring +1 for every step it stays there over a
                 500&ndash;step episode.
             </p>
+            
+            <header>
+                <h2>Environment</h2>
+            </header>
             <p>
-                The whole simulation is pure functional JAX &mdash; fixed-shape
-                arrays with an <code>alive</code> mask instead of a growing list,
-                <code>vmap</code> over the population and over parallel worlds,
-                <code>lax.scan</code> over episode steps. 256 worlds &times; 500
-                steps runs in about a second on a laptop CPU.
+                The whole simulation environment is pure functional JAX. I utilised fixed size arrays
+                and masks to enable the use of VMAP and parallel simulations. Food is randomly placed throughout the
+                gridworld initially, and regrows stochastically to a per tile cap. 
             </p>
         </section>
 
@@ -49,12 +62,17 @@
                 <h1>Three regimes</h1>
             </header>
             <p>
-                Three fixed movement costs, with the third also in a leaner
-                world &mdash; the food regrows more slowly. These are real
-                trajectories exported from the simulation and replayed here;
-                nothing is simulated in the browser. Green is food, dark dots
-                are foragers, and the shaded strip on each chart is the target
-                band.
+                The following three serve as baseline regimes. The first example shows a population collapse where the cost 
+                of movement is too high so the population simply collapses.
+                
+                The second shows a relatively stable population that oscillates roughly within the required band.
+
+                Finally we have a boom-bust population. Movement cost is low so the population expands rapidly, consumes its resources,
+                then starts dying out. The population is able to recover as the foragers can move around cheapily and consume the ever increasing
+                food while the population is dying. 
+                
+                These are real trajectories exported from the simulation and replayed here - nothing is simulated in the browser. Green is food, dark dots
+                are foragers, and the shaded strip on each chart is the target band.
             </p>
 
             <div class="fw-runs">
