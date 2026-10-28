@@ -130,11 +130,6 @@
             <header>
                 <h1>Baselines</h1>
             </header>
-            <p>
-                Mean return over 256 parallel worlds, out of a possible 500. Every
-                fixed action was swept to find the ceiling a learned policy has to
-                clear.
-            </p>
             <table class="fw-table">
                 <thead>
                     <tr>
@@ -177,25 +172,191 @@
                     </tr>
                 </tbody>
             </table>
-            <p class="fw-caption">
-                Random scores 38 because half the action space is lethal. The
-                best single action scores 298, so a learned policy has to beat
-                that to show it is reacting to what it observes rather than
-                settling on one lever position. Since the population oscillates
-                under <em>every</em> fixed action, there is real headroom between
-                298 and 500 for a policy that adjusts as the population swings.
-            </p>
         </section>
 
         <section class="content">
             <header>
                 <h1>The learned agent</h1>
             </header>
-            <p class="fw-pending">
-                In progress. The environment, the batched rollout and the policy
-                interface are done; PPO is the next piece. This section will hold
-                the training curve and the trained agent's trajectory next to the
-                298 baseline.
+            <p>
+                The agent is PPO, written in JAX in the style of
+                <a href="https://github.com/luchris429/purejaxrl" target="_blank" rel="noopener noreferrer">PureJaxRL</a>.
+                Its observation is a three-dimensional vector of global aggregates (total
+                food, population and mean energy) with no spatial features or history.
+                The action space is discrete: 12 move costs from 0.0 to 2.75.
+            </p>
+            <p>
+                The band is a parameter of the environment, so I trained one policy for
+                each of four bands, for 5M environment steps each.
+            </p>
+
+            <table class="fw-table">
+                <thead>
+                    <tr>
+                        <th>band</th>
+                        <th>range</th>
+                        <th>PPO</th>
+                        <th>best fixed</th>
+                        <th>fixed cost</th>
+                        <th>extinct (PPO / fixed)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>wide</td>
+                        <td>80&ndash;140</td>
+                        <td>496</td>
+                        <td>298</td>
+                        <td>1.50</td>
+                        <td>0% / 0%</td>
+                    </tr>
+                    <tr>
+                        <td>ceiling</td>
+                        <td>120&ndash;154</td>
+                        <td>448</td>
+                        <td>203</td>
+                        <td>1.25</td>
+                        <td>0% / 0%</td>
+                    </tr>
+                    <tr>
+                        <td>floor</td>
+                        <td>0&ndash;30</td>
+                        <td>349</td>
+                        <td>84</td>
+                        <td>1.75</td>
+                        <td>27% / 69%</td>
+                    </tr>
+                    <tr>
+                        <td>tight</td>
+                        <td>75&ndash;85</td>
+                        <td>270</td>
+                        <td>66</td>
+                        <td>1.50</td>
+                        <td>0% / 0%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <figure class="fw-figure">
+                <a href="figures/01_returns.png"><img src="figures/01_returns.png" alt="Bar chart of mean steps in band per band: PPO 496, 270, 349 and 448 against 298, 66, 84 and 203 for the best fixed move cost." loading="lazy"></a>
+            </figure>
+
+            <p>
+                Based on average return over 256 evaluation worlds, PPO outperformed the
+                best fixed move cost in every target band. In this setup the wide band
+                is essentially saturated: with a band about 60 foragers wide, the agent
+                scores almost perfectly on average (496 of 500).
+            </p>
+
+            <header>
+                <h2>Training</h2>
+            </header>
+            <p>
+                Each band trains for 5M steps, which takes about two minutes on a
+                M4 Pro Macbook Pro. I used Adam with a learning rate of 2.5e-4 that decays to zero
+                over the run.
+            </p>
+            <p>
+                It learns fast. Every band beats the best fixed cost within the first
+                million steps (about 20 seconds). The wide, ceiling and floor bands
+                level off by around 3M steps, while the tight band is still climbing
+                when training stops.
+            </p>
+
+            <figure class="fw-figure">
+                <a href="figures/06_training.png"><img src="figures/06_training.png" alt="Learning curves per band against the best fixed action. Every band passes the baseline by about 1M steps; the tight band is still rising at 5M." loading="lazy"></a>
+            </figure>
+
+            <p>
+                These curves sample from the policy instead of taking its best action,
+                so they sit a little below the scores above.
+            </p>
+
+            <header>
+                <h2>What did it learn?</h2>
+            </header>
+            <p>
+                The agent learns a very basic threshold controller. As the policy in
+                each band shows, it switches from a low cost to a high cost across the
+                middle of the population band. Where that switch happens depends on the
+                size and location of the band relative to the total population, food
+                and grid settings.
+            </p>
+
+            <figure class="fw-figure">
+                <a href="figures/08_policy_map.png"><img src="figures/08_policy_map.png" alt="Average move cost PPO picks at each population, per band. Each line steps from a low cost to a high one near the middle of the shaded band." loading="lazy"></a>
+            </figure>
+
+            <p>
+                It changes cost on most steps, around 290&ndash;350 times per 500-step
+                episode, so it behaves like a thermostat rather than a smooth
+                controller.
+            </p>
+
+            <div class="fw-runs fw-runs--four">
+                <figure class="fw-panel" data-run="runs/ppo_wide.json" data-ymax="200">
+                    <figcaption>
+                        <strong>Wide</strong>
+                        <span class="fw-sub">band 80&ndash;140 &middot; cost <span class="fw-cost">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">Return <span class="fw-return">&mdash;</span>.</p>
+                </figure>
+
+                <figure class="fw-panel" data-run="runs/ppo_ceiling.json" data-ymax="200">
+                    <figcaption>
+                        <strong>Ceiling</strong>
+                        <span class="fw-sub">band 120&ndash;154 &middot; cost <span class="fw-cost">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">Return <span class="fw-return">&mdash;</span>.</p>
+                </figure>
+
+                <figure class="fw-panel" data-run="runs/ppo_floor.json" data-ymax="80">
+                    <figcaption>
+                        <strong>Floor</strong>
+                        <span class="fw-sub">band 0&ndash;30 &middot; cost <span class="fw-cost">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">Return <span class="fw-return">&mdash;</span>.</p>
+                </figure>
+
+                <figure class="fw-panel" data-run="runs/ppo_tight.json" data-ymax="120">
+                    <figcaption>
+                        <strong>Tight</strong>
+                        <span class="fw-sub">band 75&ndash;85 &middot; cost <span class="fw-cost">&mdash;</span></span>
+                    </figcaption>
+                    <canvas class="fw-grid"></canvas>
+                    <canvas class="fw-chart"></canvas>
+                    <p class="fw-stat">loading&hellip;</p>
+                    <p class="fw-note">Return <span class="fw-return">&mdash;</span>.</p>
+                </figure>
+            </div>
+
+            <header>
+                <h2>Caveats and next steps</h2>
+            </header>
+            <p>
+                Each band has one training seed and one untuned set of hyperparameters
+                (the PureJaxRL defaults), so nothing here says how reliably PPO finds
+                these controllers. The tight and floor bands are the weakest.
+            </p>
+            <p>
+                The floor band's 27% extinction rate mostly comes from the start of
+                each episode, when the population grows quickly and the agent then culls
+                it too hard. Being able to observe the rate of change of the population
+                may let the agent do better here, and that is what I will look at next.
+            </p>
+            <p>
+                Further experimentation into the floor control band, where the agent has
+                to balance the risk of extinction against holding the population in
+                band, is worth investigating.
             </p>
         </section>
     </main>

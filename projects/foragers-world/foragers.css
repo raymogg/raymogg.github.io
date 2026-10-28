@@ -22,7 +22,7 @@
     color: #222;
 }
 
-/* Three runs, stacked in a single column */
+/* Three runs: stacked on small screens, one row on larger ones */
 .fw-runs {
     display: grid;
     gap: 2.5rem;
@@ -31,7 +31,56 @@
 
 .fw-panel {
     margin: 0;
-    max-width: 420px;
+    min-width: 0;
+    max-width: 320px;
+}
+
+@media (min-width: 720px) {
+    .fw-runs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+
+    .fw-panel {
+        max-width: none;
+    }
+}
+
+/* Four learned runs: two per row, then one row of four */
+@media (min-width: 480px) {
+    .fw-runs--four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+
+    .fw-runs--four .fw-panel {
+        max-width: none;
+    }
+}
+
+@media (min-width: 720px) {
+    .fw-runs--four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+}
+
+/* Static figures exported from the experiment */
+.fw-figure {
+    margin: 1.5rem 0 0;
+}
+
+.fw-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.fw-figure figcaption {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #666;
+    margin-top: 0.4rem;
 }
 
 .fw-panel figcaption {
@@ -113,17 +162,4 @@
 .fw-table tbody tr:first-child td {
     color: #222;
     font-weight: 600;
-}
-
-.fw-caption {
-    font-size: 0.9rem;
-    color: #666;
-    margin-top: 1.25rem;
-}
-
-.fw-pending {
-    font-size: 0.95rem;
-    color: #666;
-    padding-left: 1rem;
-    border-left: 2px solid #e8e8e8;
 }

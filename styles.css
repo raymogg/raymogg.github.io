@@ -29,10 +29,32 @@ header {
     margin-bottom: 1rem;
 }
 
+/* One weight for every heading; size and colour carry the hierarchy */
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    line-height: 1.25;
+    color: #222;
+}
+
 h1 {
     font-size: 2rem;
-    font-weight: 400;
-    color: #222;
+    letter-spacing: -0.01em;
+}
+
+h2 {
+    font-size: 1.35rem;
+}
+
+h3 {
+    font-size: 1.05rem;
+    color: #555;
+}
+
+/* Subsection headings need room above them, not just below */
+.content header:not(:first-child) {
+    margin-top: 2.25rem;
 }
 
 .content {
@@ -167,6 +189,14 @@ footer {
 
     h1 {
         font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    h3 {
+        font-size: 1rem;
     }
 
     .content {

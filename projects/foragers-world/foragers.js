@@ -77,7 +77,7 @@
         var w = fit.w;
         var h = fit.h;
         var total = run.frames.length;
-        // Shared y-scale across all three runs so the charts are comparable,
+        // Shared y-scale across a row of runs so the charts are comparable,
         // but set from the data rather than MAX_POPULATION -- scaling to 256
         // squashes the band into a sliver no one can read.
         var yMax = run.yMax;
@@ -106,6 +106,7 @@
         var grid = panel.querySelector(".fw-grid");
         var chart = panel.querySelector(".fw-chart");
         var stat = panel.querySelector(".fw-stat");
+        var cost = panel.querySelector(".fw-cost");
         var frame = 0;
 
         function render() {
@@ -114,6 +115,13 @@
             drawChart(chart, run, frame);
             stat.textContent =
                 "step " + frame + " — " + f.n + " foragers";
+            // Learned policies pick a new cost every step. actions[t] is the
+            // cost chosen on seeing frame t, so the last frame has none.
+            if (run.actions && cost) {
+                cost.textContent = frame < run.actions.length
+                    ? run.moveCosts[run.actions[frame]].toFixed(2)
+                    : "\u2014";
+            }
         }
 
         render();
@@ -141,11 +149,15 @@
                 run.frames.forEach(function (f) {
                     f.food = decodeFood(f.f);
                 });
-                run.yMax = Y_MAX;
-                panel.querySelector(".fw-cost").textContent =
-                    run.moveCost.toFixed(2);
-                panel.querySelector(".fw-regrowth").textContent =
-                    run.regrowth.toFixed(2);
+                // A panel can set its own ceiling: the floor band (0-30)
+                // is a sliver on the shared scale.
+                run.yMax = Number(panel.getAttribute("data-ymax")) || Y_MAX;
+                var cost = panel.querySelector(".fw-cost");
+                if (cost && run.moveCost != null) {
+                    cost.textContent = run.moveCost.toFixed(2);
+                }
+                var regrowth = panel.querySelector(".fw-regrowth");
+                if (regrowth) regrowth.textContent = run.regrowth.toFixed(2);
                 panel.querySelector(".fw-return").textContent =
                     run.return + "/" + (run.frames.length - 1);
                 return setup(panel, run);
@@ -166,7 +178,7 @@
             var live = views.filter(Boolean);
             if (!live.length) return;
 
-            // One shared clock, so the three runs stay in step with each other.
+            // One shared clock, so the runs stay in step with each other.
             setInterval(function () {
                 live.forEach(function (v) { v.advance(); });
             }, STEP_MS);
