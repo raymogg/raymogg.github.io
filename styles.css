@@ -153,6 +153,36 @@ h3 {
     }
 }
 
+.see-cv {
+    margin-top: 1rem;
+    color: #666;
+}
+
+.see-cv a,
+.cv-download a {
+    color: #222;
+    text-decoration: underline;
+    text-decoration-color: #ccc;
+    text-underline-offset: 3px;
+}
+
+.see-cv a:hover,
+.cv-download a:hover {
+    text-decoration-color: #222;
+}
+
+/* CV page */
+.cv-download {
+    margin-bottom: 1rem;
+}
+
+.cv-embed {
+    display: block;
+    width: 100%;
+    height: 85vh;
+    border: 1px solid #e0e0e0;
+}
+
 footer {
     margin-top: 4rem;
     padding-top: 2rem;
