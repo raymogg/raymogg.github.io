@@ -1,0 +1,5 @@
+band,band_low,band_high,ppo_mean_return,ppo_seed_sd,ppo_seed_returns,best_fixed_mean_return,best_fixed_policy,best_fixed_cost
+wide,80,140,495.9,0.7,496.0 495.5 495.3 495.9 497.0,297.6,fixed:6,1.5
+tight,75,85,277.2,11.4,270.4 282.1 295.1 269.5 268.7,65.6,fixed:6,1.5
+floor,0,30,293.4,36.3,349.0 287.9 305.1 255.6 269.5,83.6,fixed:7,1.75
+ceiling,120,154,453.9,10.4,448.2 470.9 455.5 443.7 451.2,203.0,fixed:5,1.25

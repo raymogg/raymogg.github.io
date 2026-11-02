@@ -20,7 +20,7 @@
             </p>
             <p>
                 I built foragers world as a way to explore simulated environments in JAX, evolutionary processes and 
-                population control RL. The world is designed to be simple by nature (only one control lever, small environment state) to allow a researcher
+                reinforcement learning. The world is designed to be simple by nature (only one control lever, small environment state) to allow a researcher
                 to reason with changes made by the agent. The goal of the RL agent is to control the population of foragers
                 within a given band. Critically, it is important where this band sits, and I found that controlling the population 
                 closer to the extinction threshold was much harder for the agent.
@@ -53,18 +53,17 @@
                 <h2>Environment</h2>
             </header>
             <p>
-                The whole simulation environment is pure functional JAX. I utilised fixed size arrays
-                and masks to enable the use of VMAP and parallel simulations. Food is randomly placed throughout the
-                gridworld initially, and regrows stochastically to a per tile cap. 
+                The whole simulation environment is pure functional JAX. Food is randomly placed throughout the
+                gridworld initially, and regrows randomly (Bernouli per tile) to a per tile cap. 
             </p>
         </section>
 
         <section class="content">
             <header>
-                <h1>Three regimes</h1>
+                <h1>Baseline Regimes</h1>
             </header>
             <p>
-                The following three serve as baseline regimes with a fixed movement cost. The first example shows a population collapse where the cost 
+                The following three regimes serve as baseline with a fixed movement cost. The first example shows a population collapse where the cost 
                 of movement is too high so the population simply collapses.
                 
                 The second shows a relatively stable population that oscillates roughly within the required band.
@@ -88,8 +87,7 @@
                     <p class="fw-stat">loading&hellip;</p>
                     <p class="fw-note">
                         Movement costs more energy than a tile of food returns.
-                        Everyone starves within a dozen steps, long before the
-                        band is reached. Return <span class="fw-return">&mdash;</span>.
+                        All foragers starve within a dozen steps. Return <span class="fw-return">&mdash;</span>.
                     </p>
                 </figure>
 
@@ -118,10 +116,9 @@
                     <canvas class="fw-chart"></canvas>
                     <p class="fw-stat">loading&hellip;</p>
                     <p class="fw-note">
-                        Cheap movement in a leaner world. The population
+                        The population
                         overshoots to twice the band, strips the map, crashes,
-                        and repeats &mdash; a range of nearly 200, passing through
-                        the band without ever settling.
+                        and repeats.
                         Return <span class="fw-return">&mdash;</span>.
                     </p>
                 </figure>
@@ -130,8 +127,12 @@
 
         <section class="content">
             <header>
-                <h1>Baselines</h1>
+                <h1>Baselines (wide band)</h1>
             </header>
+            <p>
+                These baselines are for the wide band (80&ndash;140). The fixed policies keep the same
+                move cost every step, and uniform random picks a new cost each step. The return is averaged over 256 evaluation worlds.
+            </p>
             <table class="fw-table">
                 <thead>
                     <tr>
@@ -178,18 +179,21 @@
 
         <section class="content">
             <header>
-                <h1>The learned agent</h1>
+                <h1>Learning Population Control</h1>
             </header>
             <p>
-                The agent uses PPO, written in JAX in the style of
-                <a href="https://github.com/luchris429/purejaxrl" target="_blank" rel="noopener noreferrer">PureJaxRL</a>.
+                The RL agent uses PPO to learn a control policy.
                 Its observation is a three-dimensional vector of global aggregates (total
-                food, population and mean energy) with no spatial features or history.
+                food, total population and mean energy) with no spatial features or history.
                 The action space is discrete: 12 move costs from 0.0 to 2.75.
             </p>
             <p>
                 The band is a parameter of the environment, so I trained one policy for
-                each of four bands, for 5M environment steps each.
+                each of four bands, for 5M environment steps each, and repeated that over
+                five training seeds. Each trained policy is then scored on the same 256
+                evaluation worlds, and its reward is averaged over them. The PPO column is the
+                mean of those averages across the five seeds, and the fixed cost column is the
+                best constant move cost averaged over the same 256 worlds.
             </p>
 
             <table class="fw-table">
@@ -197,9 +201,9 @@
                     <tr>
                         <th>band</th>
                         <th>range</th>
-                        <th>PPO</th>
-                        <th>best fixed</th>
-                        <th>fixed cost</th>
+                        <th>avg PPO reward (5 seeds)</th>
+                        <th>avg fixed cost reward</th>
+                        <th>best fixed cost</th>
                         <th>extinct (PPO / fixed)</th>
                     </tr>
                 </thead>
@@ -207,7 +211,7 @@
                     <tr>
                         <td>wide</td>
                         <td>80&ndash;140</td>
-                        <td>496</td>
+                        <td>496 &plusmn; 1</td>
                         <td>298</td>
                         <td>1.50</td>
                         <td>0% / 0%</td>
@@ -215,7 +219,7 @@
                     <tr>
                         <td>ceiling</td>
                         <td>120&ndash;154</td>
-                        <td>448</td>
+                        <td>454 &plusmn; 10</td>
                         <td>203</td>
                         <td>1.25</td>
                         <td>0% / 0%</td>
@@ -223,15 +227,15 @@
                     <tr>
                         <td>floor</td>
                         <td>0&ndash;30</td>
-                        <td>349</td>
+                        <td>293 &plusmn; 36</td>
                         <td>84</td>
                         <td>1.75</td>
-                        <td>27% / 69%</td>
+                        <td>41% / 69%</td>
                     </tr>
                     <tr>
                         <td>tight</td>
                         <td>75&ndash;85</td>
-                        <td>270</td>
+                        <td>277 &plusmn; 11</td>
                         <td>66</td>
                         <td>1.50</td>
                         <td>0% / 0%</td>
@@ -240,12 +244,14 @@
             </table>
 
             <figure class="fw-figure">
-                <a href="figures/01_returns.png"><img src="figures/01_returns.png" alt="Bar chart of mean steps in band per band: PPO 496, 270, 349 and 448 against 298, 66, 84 and 203 for the best fixed move cost." loading="lazy"></a>
+                <a href="figures/01_returns.png"><img src="figures/01_returns.png" alt="PPO 496, 277, 293 and 454 (mean of 5 training seeds, each shown as a dot) against 298, 66, 84 and 203 for the best fixed move cost." loading="lazy"></a>
+                <figcaption>Bars are the mean over 5 training seeds, one dot per seed.</figcaption>
             </figure>
 
             <p>
                 Based on average return over 256 evaluation worlds, PPO outperformed the
-                best fixed move cost in every target band. In this setup the wide band
+                best fixed move cost in every target band, and it did so for every one of
+                the 20 trained policies (4 bands &times; 5 seeds). In this setup the wide band
                 is essentially saturated: with a band about 60 foragers wide, the agent
                 scores almost perfectly on average (496 of 500).
             </p>
@@ -257,12 +263,6 @@
                 Each band trains for 5M steps, which takes about two minutes on a
                 M4 Pro Macbook Pro. I used Adam with a learning rate of 2.5e-4 that decays to zero
                 over the run.
-            </p>
-            <p>
-                It learns fast. Every band beats the best fixed cost within the first
-                million steps (about 20 seconds). The wide, ceiling and floor bands
-                level off by around 3M steps, while the tight band is still climbing
-                when training stops.
             </p>
 
             <figure class="fw-figure">
@@ -282,18 +282,12 @@
                 each band shows, it switches from a low cost to a high cost across the
                 middle of the population band. Where that switch happens depends on the
                 size and location of the band relative to the total population, food
-                and grid settings.
+                and grid settings. The chart below shows a sample from one seed however the same switch behaviour was present across all seeds.
             </p>
 
             <figure class="fw-figure">
                 <a href="figures/08_policy_map.png"><img src="figures/08_policy_map.png" alt="Average move cost PPO picks at each population, per band. Each line steps from a low cost to a high one near the middle of the shaded band." loading="lazy"></a>
             </figure>
-
-            <p>
-                It changes cost on most steps, around 290&ndash;350 times per 500-step
-                episode, so it behaves like a thermostat rather than a smooth
-                controller.
-            </p>
 
             <div class="fw-runs fw-runs--four">
                 <figure class="fw-panel" data-run="runs/ppo_wide.json" data-ymax="200">
@@ -340,25 +334,218 @@
                     <p class="fw-note">Return <span class="fw-return">&mdash;</span>.</p>
                 </figure>
             </div>
+        </section>
 
+        <section class="content">
             <header>
-                <h2>Caveats and next steps</h2>
+                <h1>Floor control ablations</h1>
             </header>
             <p>
-                Each band has one training seed and one untuned set of hyperparameters
-                (the PureJaxRL defaults), so nothing here says how reliably PPO finds
-                these controllers. The tight and floor bands are the weakest.
+                The floor band (0&ndash;30) was the one I most wanted to improve as most of the other bands were
+                quite easily saturated. Holding the population low without hitting extinction was the harder task for the 
+                agent to learn.
+                </p>
+            <header>
+                <h2>Two kinds of extinction</h2>
+            </header>
+            <p>
+                Looking at when the baseline agent's populations died, the extinctions split
+                cleanly into two groups: <strong>early</strong>
+                (within the first 20 steps) and <strong>late</strong> (after step 20). In the
+                baseline, 56 of the 68 greedy extinctions were early, with a median extinction
+                step of 9.
             </p>
             <p>
-                The floor band's 27% extinction rate mostly comes from the start of
-                each episode, when the population grows quickly and the agent then culls
-                it too hard. Being able to observe the rate of change of the population
-                may let the agent do better here, and that is what I will look at next.
+                The early crash comes from the start conditions. All 16 starting foragers have
+                10 energy, so they all breed at once and the population jumps to about 50 within
+                2&ndash;3 steps, well above the band. The agent responds with its harshest cull
+                and keeps it up while the population falls straight through the band:
+            </p>
+
+            <table class="fw-table fw-table--plain">
+                <thead>
+                    <tr>
+                        <th>step</th>
+                        <th>0</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>population</td>
+                        <td>16</td>
+                        <td>32</td>
+                        <td>51</td>
+                        <td>30</td>
+                        <td>19</td>
+                        <td>3</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td>move cost</td>
+                        <td>2.5</td>
+                        <td>2.5</td>
+                        <td>2.5</td>
+                        <td>2.5</td>
+                        <td>2.5</td>
+                        <td>2.5</td>
+                        <td>&mdash;</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <header>
+                <h2>The ablations</h2>
+            </header>
+            <p>
+                I tried two changes to the observation state, alone and together:
+            </p>
+            <ul>
+                <li>
+                    <strong>add population growth observation</strong> The agent also sees the population's fractional
+                    change since the last step. The baseline only sees the current population.
+                </li>
+                <li>
+                    <strong>Band-scaled population.</strong> The population observation was originally
+                    population&nbsp;/&nbsp;256, so the whole floor band spanned 0&ndash;0.12 of the
+                    input and one forager was a change of 0.004. I replaced it with the
+                    population scaled to the band (here population&nbsp;/&nbsp;30), so the band
+                    spans the full 0&ndash;1.
+                </li>
+                <li>
+                    <strong>Band-scaled + growth observation.</strong> Both changes together.
+                </li>
+            </ul>
+
+            <table class="fw-table fw-table--plain">
+                <thead>
+                    <tr>
+                        <th>setup</th>
+                        <th>avg greedy return</th>
+                        <th>avg sampled return</th>
+                        <th>sampled extinct</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>baseline</td>
+                        <td>293 &plusmn; 36</td>
+                        <td>207 &plusmn; 49</td>
+                        <td>73%</td>
+                    </tr>
+                    <tr>
+                        <td>+ growth observation</td>
+                        <td>346 &plusmn; 65</td>
+                        <td>235 &plusmn; 45</td>
+                        <td>63%</td>
+                    </tr>
+                    <tr>
+                        <td>band-scaled</td>
+                        <td>341 &plusmn; 40</td>
+                        <td><strong>366 &plusmn; 28</strong></td>
+                        <td><strong>33%</strong></td>
+                    </tr>
+                    <tr>
+                        <td>band-scaled + growth observation</td>
+                        <td>325 &plusmn; 178</td>
+                        <td>318 &plusmn; 171</td>
+                        <td>40%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Mean &plusmn; standard deviation across 5 training seeds, each scored on the
+                same 256 worlds.
+            </p>
+
+            <header>
+                <h2>Results</h2>
+            </header>
+            <p>
+                Band scaling is a clear win. With the population scaled to the band, the agent can
+                actually tell 5 foragers from 15, and it learns to ease off the cull before the start-up
+                crash hits zero. For the sampled policy, return went from 207 to 366 and extinctions
+                dropped from 73% to 33%, and it was the most consistent setup across seeds. The greedy
+                policy is less clear cut: it stops dying at the start, but ends up dying later in the
+                episode instead, so total extinctions stay about the same.
             </p>
             <p>
-                Further experimentation into the floor control band, where the agent has
-                to balance the risk of extinction against holding the population in
-                band, is worth investigating.
+                Adding the growth observation didn't change anything. On seed 0 it looked like it removed
+                the late extinctions, but that didn't hold up across five seeds. Combining it with band
+                scaling also made training less reliable, with one of the five seeds collapsing onto a
+                strategy that went extinct in every evaluation world.
+            </p>
+            <p>
+                To back these up I used Welch's ANOVA across the four setups, with each seed as one data
+                point. A standard ANOVA expects every setup to have the same variance, which these runs don't
+                (the failed seed makes band-scaled + growth observation far noisier than the rest). It found sampled
+                returns differ between setups, but greedy returns don't.
+            </p>
+            <p>
+                To see which setups differ, I compared each one against the baseline with a permutation test
+                (Holm-corrected):
+            </p>
+
+            <table class="fw-table fw-table--plain">
+                <thead>
+                    <tr>
+                        <th>vs baseline</th>
+                        <th>greedy return</th>
+                        <th>sampled return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>+ growth observation</td>
+                        <td>+52.1, p = 0.30</td>
+                        <td>+28.0, p = 0.44</td>
+                    </tr>
+                    <tr>
+                        <td>band-scaled</td>
+                        <td>+47.7, p = 0.26</td>
+                        <td><strong>+159.0, p = 0.024</strong></td>
+                    </tr>
+                    <tr>
+                        <td>band-scaled + growth observation</td>
+                        <td>+31.2, p = 0.80</td>
+                        <td>+110.9, p = 0.44</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Band scaling for the sampled policy is the only statistically significant difference
+                (p&nbsp;=&nbsp;0.024, below the usual 0.05 threshold). With five seeds per group, 0.024 is the
+                smallest p-value the permutation test can give, so it's as strong a result as this setup can
+                show.
+            </p>
+
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Conclusions</h1>
+            </header>
+            <p>
+                PPO with a three-number observation learns a simple threshold controller that beats the
+                best fixed move cost in every band, across all five training seeds. It is near-perfect when the band sits comfortably in
+                the middle of the population's range, and much weaker when the band is narrow (tight) or
+                sits next to extinction (floor).
+            </p>
+
+            <header>
+                <h2>Caveats</h2>
+            </header>
+            <p>
+                Five seeds give low statistical power. &ldquo;No significant difference&rdquo; in greedy
+                return means differences of around &plusmn;50 can't be ruled out. Seed-to-seed
+                variation is small in the wide, ceiling and tight bands but large in the floor band
+                (SD about 36), where a single seed can be off by about 50 points. Every run used untuned
+                PureJaxRL default hyperparameters.
             </p>
         </section>
     </main>

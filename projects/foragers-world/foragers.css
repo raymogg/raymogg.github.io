@@ -163,3 +163,8 @@
     color: #222;
     font-weight: 600;
 }
+
+.fw-table--plain tbody tr:first-child td {
+    color: #444;
+    font-weight: 400;
+}
