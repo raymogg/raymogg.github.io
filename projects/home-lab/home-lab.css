@@ -1,0 +1,52 @@
+/* home lab project page. Extends styles.css; defines nothing it already has. */
+
+.project-meta {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.hl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-top: 1.25rem;
+}
+
+.hl-table th,
+.hl-table td {
+    text-align: left;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid #ededed;
+    vertical-align: top;
+}
+
+.hl-table th {
+    font-weight: 600;
+    color: #222;
+    font-size: 0.85rem;
+}
+
+.hl-table td {
+    color: #444;
+    font-variant-numeric: tabular-nums;
+}
+
+.hl-table td:first-child {
+    color: #222;
+}
+
+.project-meta a {
+    color: #222;
+    text-decoration: underline;
+    text-decoration-color: #ccc;
+    text-underline-offset: 3px;
+}
+
+.project-meta a:hover {
+    text-decoration-color: #222;
+}
+
+.content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>home lab — raymogg.com</title>
+    <meta name="description" content="A local RL and LLM inference setup for experimentation and training.">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="home-lab.css">
+</head>
+<body>
+    <main>
+        <section class="content">
+            <header>
+                <h1>Home Lab</h1>
+            </header>
+            <p class="project-meta">
+                A local RL and LLM inference setup for experimentation and training.
+                <a href="https://github.com/raymogg/gary" target="_blank" rel="noopener noreferrer">Source on GitHub</a>.
+            </p>
+            <p>
+                The lab runs on a single-GPU workstation. Models are served by vLLM and current interacted with via Open WebUI. Everything is containerised.
+            </p>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Current State</h1>
+            </header>
+            <table class="hl-table">
+                <thead>
+                    <tr>
+                        <th>component</th>
+                        <th>current</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GPU</td>
+                        <td>NVIDIA RTX Pro 5000 (48 GB)</td>
+                    </tr>
+                    <tr>
+                        <td>Models</td>
+                        <td>Qwen3.8-27B (default), Recursive's Flint</td>
+                    </tr>
+                    <tr>
+                        <td>Inference</td>
+                        <td>vLLM</td>
+                    </tr>
+                    <tr>
+                        <td>Front end</td>
+                        <td>Open WebUI</td>
+                    </tr>
+                    <tr>
+                        <td>Routing</td>
+                        <td>Caddy, reachable over Tailscale only</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Models</h1>
+            </header>
+            <p>
+                The GPU has room for one model at a time. Qwen is the default. Flint swaps in through a
+                compose override file.
+                Flint's fast kernels target B200/GB200, so on this card vLLM falls back to its standard
+                kernels (Marlin for the NVFP4 MoE, FlashInfer for attention).
+            </p>
+            <table class="hl-table">
+                <thead>
+                    <tr>
+                        <th>setting</th>
+                        <th>Qwen3.8-27B</th>
+                        <th>Flint</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>architecture</td>
+                        <td>27B dense</td>
+                        <td>40B MoE, 2.5B active</td>
+                    </tr>
+                    <tr>
+                        <td>weights</td>
+                        <td>FP8 (~31 GB)</td>
+                        <td>NVFP4 GGUF (23 GB)</td>
+                    </tr>
+                    <tr>
+                        <td>context length</td>
+                        <td>64K</td>
+                        <td>262K (full)</td>
+                    </tr>
+                    <tr>
+                        <td>KV cache</td>
+                        <td>FP8</td>
+                        <td>BF16</td>
+                    </tr>
+                    <tr>
+                        <td>max concurrent seqs</td>
+                        <td>8</td>
+                        <td>8</td>
+                    </tr>
+                    <tr>
+                        <td>speculative decoding</td>
+                        <td>MTP, 3 tokens</td>
+                        <td>&ndash;</td>
+                    </tr>
+                    <tr>
+                        <td>reasoning</td>
+                        <td><code>qwen3</code> parser, low effort by default</td>
+                        <td><code>glm47</code> parser</td>
+                    </tr>
+                    <tr>
+                        <td>tool calls</td>
+                        <td><code>qwen3_xml</code> parser</td>
+                        <td><code>glm47</code> parser</td>
+                    </tr>
+                    <tr>
+                        <td>throughput</td>
+                        <td>&ndash;</td>
+                        <td>~240 tokens/s, single stream</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="content">
+            <header>
+                <h1>Infra</h1>
+            </header>
+            <p>
+                Networking in managed via Tailscale so access is restricted to approved devices. Caddy proxies inbound requests to
+                Open WebUI.
+            </p>
+
+            <header>
+                <h2>Containers</h2>
+            </header>
+            <table class="hl-table">
+                <thead>
+                    <tr>
+                        <th>container</th>
+                        <th>role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>vllm</td>
+                        <td>Serves the model on the GPU. Weights load from local disk with the Hugging Face Hub offline.</td>
+                    </tr>
+                    <tr>
+                        <td>open-webui</td>
+                        <td>Chat UI. Chats, users and settings persist to a local data directory.</td>
+                    </tr>
+                    <tr>
+                        <td>caddy</td>
+                        <td>Reverse proxy on the host network, bound to the Tailscale IP.</td>
+                    </tr>
+                    <tr>
+                        <td>monitor</td>
+                        <td>Checks vLLM and Open WebUI every minute and sends a Telegram alert on failure.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <nav class="links">
+            <a href="../../" aria-label="Home">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path d="M12 3 2 12h3v9h6v-6h2v6h6v-9h3L12 3z"/>
+                </svg>
+            </a>
+            <a href="https://github.com/raymogg" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.69-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.02 11.02 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.2.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/>
+                </svg>
+            </a>
+        </nav>
+    </footer>
+</body>
+</html>
